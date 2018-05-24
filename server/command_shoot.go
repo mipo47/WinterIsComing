@@ -29,12 +29,12 @@ func (CommandShoot) Execute(g *Game, connCommand core.ConnCommand, io core.Comma
 	}
 
 	aliveZombieCount := 0
-	hitZombies := make([]Zombie, 0, len(g.zombies))
+	hitZombies := make([]core.Zombie, 0, len(g.zombies))
 	for i := 0 ; i < len(g.zombies); i++ {
 		zombie := &g.zombies[i]
-		if !zombie.isDead {
-			if zombie.x == x && zombie.y == y {
-				zombie.isDead = true
+		if !zombie.IsDead {
+			if zombie.X == x && zombie.Y == y {
+				zombie.IsDead = true
 				hitZombies = append(hitZombies, *zombie)
 			} else {
 				aliveZombieCount++
@@ -45,12 +45,13 @@ func (CommandShoot) Execute(g *Game, connCommand core.ConnCommand, io core.Comma
 	clientName := g.GetClientName(io)
 	reply := fmt.Sprintf("BOOM %v %d", clientName, len(hitZombies))
 	for _, zombie := range hitZombies {
-		reply += " " + zombie.name
+		reply += " " + zombie.Name
 	}
 	io.SendLine(reply)
 
 	// All zombies are dead
 	if aliveZombieCount == 0 {
 		g.gameResult = "WIN " + clientName
+		//g.SetResult("WIN " + clientName, io)
 	}
 }

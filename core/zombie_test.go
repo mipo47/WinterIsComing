@@ -1,4 +1,4 @@
-package main
+package core
 
 import "testing"
 
@@ -12,7 +12,7 @@ func TestCreateZombies(t *testing.T) {
 		t.Error("Wrong amount of zombies:", len(zombies), "instead of", zombieCount)
 	}
 	for _, zombie := range zombies {
-		if zombie.x < 0 || zombie.x >= maxX || zombie.y < 0 || zombie.y >= maxY {
+		if zombie.X < 0 || zombie.X >= maxX || zombie.Y < 0 || zombie.Y >= maxY {
 			t.Error("Zombie x is out of bound", zombie)
 		}
 	}

@@ -41,8 +41,8 @@ func TestCommandStart_Execute(t *testing.T) {
 		if len(args) != 4 || args[0] != "WALK" {
 			t.Error("Wrong WALK format:", command.Line)
 		}
-		if args[1] != zombie.name {
-			t.Error("Wrong zombie name", args[1], "instead of", zombie.name)
+		if args[1] != zombie.Name {
+			t.Error("Wrong zombie name", args[1], "instead of", zombie.Name)
 		}
 	}
 }
@@ -58,7 +58,7 @@ func TestCommandShoot_Execute(t *testing.T) {
 
 	commandShoot := CommandShoot{}
 	command := core.ConnCommand {
-		Line: fmt.Sprintf("SHOOT %d %d", zombie.x, zombie.y),
+		Line: fmt.Sprintf("SHOOT %d %d", zombie.X, zombie.Y),
 	}
 
 	var wg sync.WaitGroup
@@ -73,14 +73,14 @@ func TestCommandShoot_Execute(t *testing.T) {
 	}()
 
 	reply := (<-ioServer.Input).Line
-	expected := "BOOM " + CLIENT_NAME + " 1 " + zombie.name
+	expected := "BOOM " + CLIENT_NAME + " 1 " + zombie.Name
 	if reply != expected {
 		t.Error("Wrong reply to SHOOT command:", reply)
 		t.Error("Expected reply:", expected)
 	}
 
 	zombie = game.zombies[0]
-	if !zombie.isDead {
+	if !zombie.IsDead {
 		t.Error("Zombie should be dead after shoot")
 	}
 }

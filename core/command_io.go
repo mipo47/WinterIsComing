@@ -70,13 +70,17 @@ func (c *CommandIO) SendCommand(commandName string, args... interface{}) {
 	c.SendLine(line)
 }
 
+func (c *CommandIO) Unlock() {
+	c.Input <- ConnCommand {}
+}
+
 func (c *CommandIO) Close() {
 	c.Conn.Close()
 }
 
 func CreatePipeIO() (*CommandIO, *CommandIO) {
 	server, client := net.Pipe()
-	ioServer := StartCommandIO(server, "SERVER")
-	ioClient := StartCommandIO(client, "CLIENT")
+	ioServer := StartCommandIO(server, "CLIENT")
+	ioClient := StartCommandIO(client, "SERVER")
 	return ioServer, ioClient
 }

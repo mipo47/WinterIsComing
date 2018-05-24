@@ -18,6 +18,7 @@ func (CommandStart) Execute(g *Game, connCommand core.ConnCommand, io core.Comma
 		if core.LOG_INFO {
 			log.Println("Starting game")
 		}
+		g.gameResult = ""
 		g.isStarted = true
 		go g.ShowZombies(io)
 		go g.MoveZombies(io)

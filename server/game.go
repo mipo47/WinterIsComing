@@ -7,22 +7,20 @@ import (
 )
 
 type Game struct {
-	isStarted bool
 	width int
 	height int
-	zombies []Zombie
+	zombies []core.Zombie
+
+	isStarted bool
 	gameResult string
 	clientNames map[core.CommandIO]string
 	commands map[string]GameCommand
 }
 
 func CreateGame(width, height, zombieCount int) *Game {
-	maxX, maxY := width - 10, height
-	if maxX < 1 { maxX = 1 }
 	g := Game {
 		width: width,
 		height: height,
-		zombies: CreateZombies(maxX, maxY, zombieCount),
 	}
 
 	g.clientNames = make(map[core.CommandIO]string)
@@ -31,6 +29,8 @@ func CreateGame(width, height, zombieCount int) *Game {
 	g.commands = make(map[string]GameCommand)
 	g.commands["START"] = CommandStart{}
 	g.commands["SHOOT"] = CommandShoot{}
+
+	g.Restart(zombieCount)
 
 	return &g
 }
@@ -43,6 +43,21 @@ func (g *Game) GetClientName(io core.CommandIO) string {
 	return g.clientNames[io]
 }
 
+func (g *Game) SetResult(result string, io core.CommandIO) {
+	g.gameResult = result
+	io.Unlock()
+}
+
+func (g *Game) Restart(zombieCount int) {
+	if core.LOG_INFO {
+		log.Printf("Create %d zombies", zombieCount)
+	}
+	g.isStarted = false
+	maxX, maxY := g.width - 10, g.height
+	if maxX < 1 { maxX = 1 }
+	g.zombies = core.CreateZombies(maxX, maxY, zombieCount)
+}
+
 func (g *Game) Play(io *core.CommandIO) {
 	defer io.Close()
 
@@ -51,13 +66,14 @@ func (g *Game) Play(io *core.CommandIO) {
 	}
 
 	var connCommand core.ConnCommand
-	for g.gameResult == "" {
+	clientName := g.GetClientName(*io)
+	for g.gameResult == "" || !g.isStarted {
 		connCommand = <-io.Input
 		if connCommand.Error != nil {
 			g.isStarted = false
 			if connCommand.EOF {
 				if core.LOG_INFO {
-					log.Println("Client left game:", g.GetClientName(*io))
+					log.Println("Client left game:", clientName)
 				}
 				break
 			} else {
@@ -66,13 +82,20 @@ func (g *Game) Play(io *core.CommandIO) {
 				}
 				panic(connCommand.Error)
 			}
-		} else {
+		} else if connCommand.Line != "" {
 			g.ExecuteCommand(connCommand, *io)
 		}
 	}
 
-	if core.TCP_SEND_RESULT && g.gameResult != "" {
-		io.SendLine(g.gameResult)
+	if g.gameResult != "" {
+		if core.TCP_SEND_RESULT {
+			io.SendLine(g.gameResult)
+		}
+
+		delete(g.clientNames, *io)
+		if len(g.clientNames) == 0 {
+			g.Restart(len(g.zombies))
+		}
 	}
 }
 
@@ -106,8 +129,8 @@ func (g *Game) ExecuteCommand(connCommand core.ConnCommand, io core.CommandIO) {
 func (g *Game) ShowZombies(io core.CommandIO)  {
 	for g.isStarted && g.gameResult == "" {
 		for _, zombie := range g.zombies {
-			if zombie.isDead { continue }
-			io.SendCommand("WALK", zombie.name, zombie.x, zombie.y)
+			if zombie.IsDead { continue }
+			io.SendCommand("WALK", zombie.Name, zombie.X, zombie.Y)
 		}
 		time.Sleep(core.SHOW_ZOMBIES_MS * time.Millisecond)
 	}
@@ -117,8 +140,12 @@ func (g *Game) MoveZombies(io core.CommandIO)  {
 	for g.isStarted && g.gameResult == "" {
 		for i := 0 ; i < len(g.zombies); i++ {
 			zombie := &g.zombies[i]
-			if !zombie.isDead {
-				zombie.Move(g)
+			if !zombie.IsDead {
+				lose := zombie.Move(g.width, g.height)
+				if lose {
+					g.SetResult("LOSE " + zombie.Name, io)
+					return
+				}
 			}
 		}
 		time.Sleep(core.MOVE_ZOMBIES_MS * time.Millisecond)
