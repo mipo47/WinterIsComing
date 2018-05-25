@@ -7,7 +7,7 @@ import (
 )
 
 type CommandShoot struct {
-	GameCommand
+	Command
 }
 
 func (CommandShoot) Execute(g *Game, connCommand core.ConnCommand, io core.CommandIO)  {
@@ -50,7 +50,7 @@ func (CommandShoot) Execute(g *Game, connCommand core.ConnCommand, io core.Comma
 	io.SendLine(reply)
 
 	// All zombies are dead
-	if aliveZombieCount == 0 {
+	if aliveZombieCount == 0 && len(hitZombies) > 0 {
 		g.gameResult = "WIN " + clientName
 		//g.SetResult("WIN " + clientName, io)
 	}

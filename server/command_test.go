@@ -17,34 +17,27 @@ func TestCommandStart_Execute(t *testing.T) {
 		t.Error("Wrong amount of zombies", len(game.zombies), "instead of", core.ZOMBIE_COUNT)
 	}
 
+	if game.isStarted != false {
+		t.Error("Game should not be started yet")
+	}
+
 	commandStart := CommandStart{}
 	command := core.ConnCommand {
 		Line: fmt.Sprintf("START %v", CLIENT_NAME),
 	}
+	commandStart.Execute(game, command, *ioClient)
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	defer wg.Wait()
-	go func() {
-		defer wg.Done()
-		commandStart.Execute(game, command, *ioClient)
-
-		clientName := game.GetClientName(*ioClient)
-		if clientName != CLIENT_NAME {
-			t.Error("Client's name is not set properly:", clientName, "instead of", CLIENT_NAME)
-		}
-	}()
-
-	for _, zombie := range game.zombies {
-		command := <-ioServer.Input
-		args := command.Split()
-		if len(args) != 4 || args[0] != "WALK" {
-			t.Error("Wrong WALK format:", command.Line)
-		}
-		if args[1] != zombie.Name {
-			t.Error("Wrong zombie name", args[1], "instead of", zombie.Name)
-		}
+	clientName := game.GetClientName(*ioClient)
+	if clientName != CLIENT_NAME {
+		t.Error("Client's name is not set properly:", clientName, "instead of", CLIENT_NAME)
 	}
+
+	if game.isStarted != true {
+		t.Error("Game should be started")
+	}
+
+	game.isStarted = false
+	game.wg.Wait()
 }
 
 func TestCommandShoot_Execute(t *testing.T) {

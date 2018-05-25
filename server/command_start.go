@@ -6,7 +6,7 @@ import (
 )
 
 type CommandStart struct {
-	GameCommand
+	Command
 }
 
 func (CommandStart) Execute(g *Game, connCommand core.ConnCommand, io core.CommandIO)  {
@@ -20,7 +20,9 @@ func (CommandStart) Execute(g *Game, connCommand core.ConnCommand, io core.Comma
 		}
 		g.gameResult = ""
 		g.isStarted = true
-		go g.ShowZombies(io)
-		go g.MoveZombies(io)
 	}
+
+	g.wg.Add(2)
+	go g.ShowZombies(io)
+	go g.MoveZombies(io)
 }

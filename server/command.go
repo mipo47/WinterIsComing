@@ -2,6 +2,6 @@ package main
 
 import "../core"
 
-type GameCommand interface {
+type Command interface {
 	Execute(g *Game, connCommand core.ConnCommand, commandIO core.CommandIO)
 }
