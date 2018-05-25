@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Winter is coming</title>
+</head>
+<body>
+<div id="start_game">
+    <h1>Let's the game begins</h1>
+    <br/>
+    <button onclick="start()">Start</button>
+</div>
+
+<div id="game">
+    <pre id="commands"></pre>
+    <canvas id="board"></canvas>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+    var sessionID;
+    var gameInterval;
+
+    $(restart);
+
+    function get(link, callback) {
+        const x = new XMLHttpRequest();
+        if (callback) {
+            x.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    const json = JSON.parse(this.responseText);
+                    if (json.Error)
+                        alert(r.Error);
+                    else
+                        callback(json);
+                }
+            };
+        }
+
+        if (sessionID)
+            link += "?SessionID=" + sessionID;
+
+        x.open("GET", link, true);
+        x.send();
+    }
+
+    function start() {
+        get("/start", function (r) {
+            sessionID = r.SessionID;
+
+            $("#start_game").hide();
+            $("#game").show();
+
+            gameInterval = setInterval(refresh, 500);
+        });
+    }
+
+    function restart() {
+        if (gameInterval)
+            clearInterval(gameInterval);
+
+        sessionID = null;
+        gameInterval = null;
+
+        $("#start_game").show();
+        $("#game").hide();
+    }
+
+    function refresh() {
+        get("/status", function (r) {
+            $("#commands").text(JSON.stringify(r.Commands));
+            const game = r.Game;
+            if (game.GameOver) {
+                alert(r.Commands[r.Commands.length-1])
+                restart();
+            } else {
+                drawGrid(r.Width, r.Height, game);
+            }
+        });
+    }
+
+    function drawGrid(w, h, game) {
+        var canvas = document.getElementById("board");
+        var ctx = canvas.getContext('2d');
+
+        const scale = 30;
+        ctx.canvas.width = w * scale;
+        ctx.canvas.height = h * scale;
+
+        ctx.strokeStyle = '#aaaaaa';
+        for (x = 0; x <= w; x++) {
+            for (y = 0; y <= h; y++) {
+                ctx.moveTo(x*scale, 0);
+                ctx.lineTo(x*scale, h*scale);
+                ctx.stroke();
+                ctx.moveTo(0, y*scale);
+                ctx.lineTo(w*scale, y*scale);
+                ctx.stroke();
+            }
+        }
+
+        for (let zombieName in game.Zombies) {
+            const zombie = game.Zombies[zombieName]
+
+            const centerX = (zombie.X + 0.5) * scale;
+            const centerY = (zombie.Y + 0.5) * scale;
+            const radius = scale * 0.45;
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+            ctx.fillStyle = textToRGB(zombieName);
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#003300';
+            ctx.stroke();
+        }
+    }
+
+    function textToRGB(str) {
+        str += str;
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        let c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+        return "#00000".substring(0, 7 - c.length) + c;
+    }
+</script>
+</body>
+</html>

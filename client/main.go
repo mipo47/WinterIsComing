@@ -2,6 +2,7 @@ package main
 
 import (
 	"../core"
+	"./gamer"
 	"log"
 	"net"
 	"strconv"
@@ -20,6 +21,6 @@ func main()  {
 	ioServer := core.StartCommandIO(conn, "CLIENT")
 	defer ioServer.Close()
 
-	gamer := CreateGamer()
+	gamer := gamer.CreateGamer()
 	gamer.Play(*ioServer)
 }

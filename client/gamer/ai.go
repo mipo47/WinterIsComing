@@ -1,7 +1,7 @@
-package main
+package gamer
 
 import (
-	"../core"
+	"../../core"
 	"sort"
 )
 

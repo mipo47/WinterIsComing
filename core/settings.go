@@ -2,7 +2,6 @@ package core
 
 const (
 	TCP_PORT        = 8765
-	TCP_TIMEOUT_SEC = 5    // wait for command up to 5 minutes
 	TCP_SEND_ERRORS = true // command execution error
 	TCP_SEND_RESULT = true // win/lose response to client
 
