@@ -47,7 +47,7 @@ func (CommandShoot) Execute(g *Game, connCommand core.ConnCommand, io core.Comma
 	for _, zombie := range hitZombies {
 		reply += " " + zombie.Name
 	}
-	io.SendLine(reply)
+	g.broadcast.SendLine(reply)
 
 	// All zombies are dead
 	if aliveZombieCount == 0 && len(hitZombies) > 0 {

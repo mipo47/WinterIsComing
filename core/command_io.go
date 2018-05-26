@@ -61,12 +61,7 @@ func (c *CommandIO) SendLine(line string) {
 }
 
 func (c *CommandIO) SendCommand(commandName string, args... interface{}) {
-	argsStr := make([]string, 0, len(args)+1)
-	argsStr = append(argsStr, strings.ToUpper(commandName))
-	for _, v := range args {
-		argsStr = append(argsStr, fmt.Sprintf("%v", v))
-	}
-	line := strings.Join(argsStr, " ")
+	line := GetCommandLine(commandName, args...)
 	c.SendLine(line)
 }
 
@@ -83,4 +78,14 @@ func CreatePipeIO() (*CommandIO, *CommandIO) {
 	ioServer := StartCommandIO(server, "CLIENT")
 	ioClient := StartCommandIO(client, "SERVER")
 	return ioServer, ioClient
+}
+
+func GetCommandLine(commandName string, args... interface{}) string {
+	argsStr := make([]string, 0, len(args)+1)
+	argsStr = append(argsStr, strings.ToUpper(commandName))
+	for _, v := range args {
+		argsStr = append(argsStr, fmt.Sprintf("%v", v))
+	}
+	line := strings.Join(argsStr, " ")
+	return line
 }

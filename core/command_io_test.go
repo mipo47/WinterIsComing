@@ -1,6 +1,9 @@
 package core
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestCommandIO_SendByParts(t *testing.T) {
 	ioServer, ioClient := CreatePipeIO()
@@ -48,6 +51,12 @@ func TestCommandIO_SendCommand(t *testing.T) {
 	}
 	if com.Line != "HELLO 1 test" {
 		t.Error("Wrong data received:", com.Line)
+	}
+
+	select {
+	case com = <-ioServer.Input:
+		t.Error("Received unexpected data", com.Line)
+	case <-time.After(100 * time.Millisecond):
 	}
 }
 

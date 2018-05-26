@@ -14,6 +14,7 @@ type Game struct {
 	isStarted   bool
 	gameResult  string
 	clientNames map[core.CommandIO]string
+	broadcast   core.Broadcast
 	commands    map[string]Command
 	wg          sync.WaitGroup
 }
@@ -25,6 +26,7 @@ func CreateGame(width, height, zombieCount int) *Game {
 	}
 
 	g.clientNames = make(map[core.CommandIO]string)
+	g.broadcast = *new(core.Broadcast)
 
 	// Bind commands
 	g.commands = make(map[string]Command)
@@ -38,6 +40,7 @@ func CreateGame(width, height, zombieCount int) *Game {
 
 func (g *Game) SetClientName(io core.CommandIO, name string) {
 	g.clientNames[io] = name
+	g.broadcast.AddOutput(io)
 }
 
 func (g *Game) GetClientName(io core.CommandIO) string {
@@ -107,6 +110,8 @@ func (g *Game) Play(io *core.CommandIO) {
 			g.Restart(len(g.zombies))
 		}
 	}
+
+	g.broadcast.RemoveOutput(*io)
 }
 
 func (g *Game) executeCommand(connCommand core.ConnCommand, io core.CommandIO) {

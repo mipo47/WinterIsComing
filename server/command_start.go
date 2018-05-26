@@ -10,6 +10,7 @@ type CommandStart struct {
 }
 
 func (CommandStart) Execute(g *Game, connCommand core.ConnCommand, io core.CommandIO)  {
+	g.broadcast.SendLine(connCommand.Line)
 	args := connCommand.Split()
 	clientName := args[1]
 	g.SetClientName(io, clientName)
