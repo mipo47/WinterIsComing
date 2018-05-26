@@ -3,48 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <title>Winter is coming</title>
+    <style>
+        #start_game {
+            padding: 50px;
+            margin: auto;
+            text-align: center;
+        }
+        button {
+            padding: 20px;
+            font-size: 18px;
+        }
+        .unselectable {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
 </head>
 <body>
 <div id="start_game">
     <h1>Let's the game begins</h1>
-    <br/>
-    <button onclick="start()">Start</button>
+    <button onclick="start(true)">Start AI</button>
+    <button onclick="start(false)">Start as a player</button>
 </div>
 
 <div id="game">
-    <pre id="commands"></pre>
     <canvas id="board"></canvas>
+    <div id="commands" class="unselectable"></div>
 </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script>
     var sessionID;
     var gameInterval;
+    var boardWidth, boardHeight, scale;
+    const canvas = document.getElementById("board");
 
-    $(restart);
+    $(function () {
+        canvas.addEventListener("mousedown", shoot, false);
+        restart();
+    });
 
-    function get(link, callback) {
+    function get(link, callback, args) {
         const x = new XMLHttpRequest();
         if (callback) {
             x.onreadystatechange = function () {
                 if (this.readyState === 4 && this.status === 200) {
                     const json = JSON.parse(this.responseText);
                     if (json.Error)
-                        alert(r.Error);
+                        alert(json.Error);
                     else
                         callback(json);
                 }
             };
         }
 
-        if (sessionID)
-            link += "?SessionID=" + sessionID;
+        if (args) {
+            link += "?" + Object.keys(args).map(function(key) {
+                return [key, args[key]].map(encodeURIComponent).join("=");
+            }).join("&");
+        }
 
+        if (sessionID) {
+            if (args)
+                link += "&SessionID=" + sessionID;
+            else
+                link += "?SessionID=" + sessionID;
+        }
         x.open("GET", link, true);
         x.send();
     }
 
-    function start() {
+    function start(ai) {
         get("/start", function (r) {
             sessionID = r.SessionID;
 
@@ -52,7 +85,7 @@
             $("#game").show();
 
             gameInterval = setInterval(refresh, 500);
-        });
+        }, {AI: ai});
     }
 
     function restart() {
@@ -68,26 +101,62 @@
 
     function refresh() {
         get("/status", function (r) {
-            $("#commands").text(JSON.stringify(r.Commands));
             const game = r.Game;
             if (game.GameOver) {
                 alert(r.Commands[r.Commands.length-1])
                 restart();
-            } else {
-                drawGrid(r.Width, r.Height, game);
+            } else if (r.Commands.length) {
+                $.each(r.Commands, function (i, command) {
+                    const p = $("<p/>s").text(command);
+                    $("#commands").prepend(p);
+                });
+                draw(r.Width, r.Height, game);
             }
         });
     }
 
-    function drawGrid(w, h, game) {
-        var canvas = document.getElementById("board");
-        var ctx = canvas.getContext('2d');
+    function shoot(event)
+    {
+        if (!scale) return;
 
-        const scale = 30;
-        ctx.canvas.width = w * scale;
-        ctx.canvas.height = h * scale;
+        let x = new Number();
+        let y = new Number();
 
-        ctx.strokeStyle = '#aaaaaa';
+        if (event.x != undefined && event.y != undefined)
+        {
+            x = event.x;
+            y = event.y;
+        }
+        else // Firefox method to get the position
+        {
+            x = event.clientX + document.body.scrollLeft +
+                    document.documentElement.scrollLeft;
+            y = event.clientY + document.body.scrollTop +
+                    document.documentElement.scrollTop;
+        }
+
+        x -= canvas.offsetLeft;
+        y -= canvas.offsetTop;
+
+        x = boardWidth - Math.floor(x / scale) - 1;
+        y = Math.floor(y / scale);
+
+        if (x >= 0 && x < boardWidth && y >= 0 && y < boardHeight) {
+            get("/shoot", null, {X: x, Y: y})
+        }
+    }
+
+    function draw(w, h, game) {
+        boardWidth = w;
+        boardHeight = h;
+
+        let ctx = canvas.getContext('2d');
+
+        scale = (window.innerWidth - 25) / w;
+        ctx.canvas.width = w * scale + 1;
+        ctx.canvas.height = h * scale + 1;
+
+        ctx.strokeStyle = '#cccccc';
         for (x = 0; x <= w; x++) {
             for (y = 0; y <= h; y++) {
                 ctx.moveTo(x*scale, 0);
@@ -102,7 +171,7 @@
         for (let zombieName in game.Zombies) {
             const zombie = game.Zombies[zombieName]
 
-            const centerX = (zombie.X + 0.5) * scale;
+            const centerX = ctx.canvas.width - (zombie.X + 0.5) * scale;
             const centerY = (zombie.Y + 0.5) * scale;
             const radius = scale * 0.45;
 

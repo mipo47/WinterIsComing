@@ -1,6 +1,7 @@
 package main
 
 import (
+	"../core"
 	"../client/gamer"
 	"time"
 )
@@ -9,14 +10,16 @@ type HttpSession struct {
 	gamer *gamer.Gamer
 	commands chan string
 	newCommands []string
+	io core.CommandIO
 }
 
-func CreateHttpSession(ai gamer.AI) *HttpSession {
+func CreateHttpSession(ai gamer.AI, io core.CommandIO) *HttpSession {
 	commands := make(chan string)
 	sess := HttpSession {
-		gamer: gamer.CreateCustomGamer(new(gamer.AI_Closest), commands),
+		gamer: gamer.CreateCustomGamer(ai, commands),
 		commands: commands,
 		newCommands: make([]string, 0, 1000),
+		io: io,
 	}
 	return &sess
 }

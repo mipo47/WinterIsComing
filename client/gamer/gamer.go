@@ -44,8 +44,10 @@ func (g *Gamer) Play(ioServer core.CommandIO)  {
 		wg.Done()
 		for !g.GameOver {
 			time.Sleep(core.SHOOT_SPEED_MS * time.Millisecond)
-			x, y := g.ai.GetShootXY(g.Zombies)
-			ioServer.SendCommand("SHOOT", x, y)
+			if g.ai != nil {
+				x, y := g.ai.GetShootXY(g.Zombies)
+				ioServer.SendCommand("SHOOT", x, y)
+			}
 		}
 	}()
 

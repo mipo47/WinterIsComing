@@ -26,6 +26,7 @@ func (s *HttpServer) Start(port int)  {
 	http.Handle("/", http.FileServer(http.Dir("./client_web/html")))
 	http.HandleFunc("/start", s.start)
 	http.HandleFunc("/status", s.status)
+	http.HandleFunc("/shoot", s.shoot)
 
 	if err := http.ListenAndServe(":" + strconv.Itoa(port), nil); err != nil {
 		log.Fatalf("Failed listen port 8080: %v", err)
@@ -53,6 +54,9 @@ func (s *HttpServer) getSession(w http.ResponseWriter, r *http.Request) *HttpSes
 }
 
 func (s *HttpServer) start(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	useAI := q.Get("AI") == "true"
+
 	if core.LOG_INFO {
 		log.Println("Connecting to localhost:", core.TCP_PORT)
 	}
@@ -64,7 +68,11 @@ func (s *HttpServer) start(w http.ResponseWriter, r *http.Request) {
 
 	ioServer := core.StartCommandIO(conn, "CLIENT")
 
-	session := CreateHttpSession(new(gamer.AI_Closest))
+	var ai gamer.AI
+	if useAI {
+		ai = new(gamer.AI_Closest)
+	}
+	session := CreateHttpSession(ai, *ioServer)
 	sessionID := rand.Intn(1000000)
 	s.sessions[sessionID] = session
 	if core.LOG_INFO {
@@ -101,4 +109,34 @@ func (s *HttpServer) status(w http.ResponseWriter, r *http.Request) {
 		Game: *session.gamer,
 	})
 	session.newCommands = session.newCommands[:0]
+}
+
+func (s *HttpServer) shoot(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			if core.LOG_ERROR {
+				log.Println("Can't shoot to zombie:", r)
+			}
+			sendJson(w, dtoStart { Error: fmt.Sprintf("%v", r) })
+		}
+	}()
+
+	session := s.getSession(w, r)
+
+	q := r.URL.Query()
+	xString := q.Get("X")
+	x, err := strconv.Atoi(xString)
+	if err != nil {
+		panic("Shoot X in wrong format: " + xString)
+	}
+	yString := q.Get("Y")
+	y, err := strconv.Atoi(yString)
+	if err != nil {
+		panic("Shoot Y in wrong format: " + yString)
+	}
+
+	if core.LOG_INFO {
+		log.Println("Shoot to zombie:", x, y)
+	}
+	session.io.SendCommand("SHOOT", x, y)
 }
