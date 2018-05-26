@@ -104,13 +104,13 @@ func TestGamer_RefreshZombieState(t *testing.T) {
 		t.Error("Only 1 zombie was added, not", len(g.Zombies))
 	}
 
-	g.RefreshZombieState(strings.Split("BOOM GAMER_NAME 0", " "))
+	g.RefreshZombieState([]string{"BOOM", g.Name, "0"})
 	if len(g.Zombies) != 1 {
 		t.Error("Zombie should stay alive after missed shoot")
 	}
 
 	// zombie was killed
-	g.RefreshZombieState(strings.Split("BOOM GAMER_NAME 1 " + ZOMBIE_NAME, " "))
+	g.RefreshZombieState([]string{"BOOM", g.Name, "1", ZOMBIE_NAME})
 	if len(g.Zombies) != 0 {
 		t.Error("All Zombies should be deleted")
 	}

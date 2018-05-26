@@ -3,10 +3,11 @@ package main
 import (
 	"../core"
 	"testing"
-	"sync"
+	"time"
 )
 
 const CLIENT_NAME = "john"
+const PROCESSING_TIME = time.Millisecond * 100
 
 func TestCreateGame(t *testing.T) {
 	game := CreateGame(core.BOARD_WIDTH, core.BOARD_HEIGHT, core.ZOMBIE_COUNT)
@@ -24,23 +25,24 @@ func TestPlayGame(t *testing.T) {
 	ioServer, ioClient := core.CreatePipeIO()
 	defer ioClient.Close()
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	// Client side mock
-	go func() {
-		defer wg.Done()
-		ioServer.SendCommand("START", CLIENT_NAME)
-		ioServer.Close()
-	}()
+	go game.Play(ioClient)
 
-	// Wait synchronously until game in server side ends
-	game.Play(ioClient)
+	ioServer.SendCommand("START", CLIENT_NAME)
 
-	// Wait synchronously until game in client side ends
-	wg.Wait()
+	time.Sleep(PROCESSING_TIME) // Server need few moments to set client name
 
 	clientName := game.GetClientName(*ioClient)
 	if clientName != CLIENT_NAME {
 		t.Error("Wrong client name", clientName, "instead of", CLIENT_NAME)
+	}
+
+	// Client disconnects
+	ioServer.Close()
+
+	time.Sleep(PROCESSING_TIME) // Server need few moments to erase client name
+
+	clientName = game.GetClientName(*ioClient)
+	if clientName != "" {
+		t.Error("Client name not erased after game:", clientName)
 	}
 }

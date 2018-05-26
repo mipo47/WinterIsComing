@@ -23,7 +23,7 @@ func (s *HttpServer) Start(port int)  {
 
 	fmt.Println("Open http://localhost:"+ strconv.Itoa(port))
 
-	http.Handle("/", http.FileServer(http.Dir("./client_web/html")))
+	http.Handle("/", http.FileServer(http.Dir("./html")))
 	http.HandleFunc("/start", s.start)
 	http.HandleFunc("/status", s.status)
 	http.HandleFunc("/shoot", s.shoot)

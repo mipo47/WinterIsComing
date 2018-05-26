@@ -112,6 +112,7 @@ func (g *Game) Play(io *core.CommandIO) {
 	}
 
 	g.broadcast.RemoveOutput(*io)
+	delete(g.clientNames, *io)
 }
 
 func (g *Game) executeCommand(connCommand core.ConnCommand, io core.CommandIO) {
