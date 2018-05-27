@@ -24,7 +24,7 @@ go run run.go web
 go run run.go build
 ```
 
-Binaries can be found in /out directory:
+Binaries can be found in /out directory (Windows/Ubuntu):
 * Server - TCP server, hosts same game for multiple clients
 * Client - TCP client, connects to server and kills zombies with other clients using simple AI
 * Web (client_web) - Same as client, but adds HTML UI and allows to kill zombies using mouse clicks
