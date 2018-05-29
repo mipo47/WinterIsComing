@@ -1,8 +1,8 @@
 package main
 
 import (
-	"../core"
-	"../client/gamer"
+	"github.com/mysteriumnetwork/winter-server/core"
+	"github.com/mysteriumnetwork/winter-server/client/gamer"
 	"time"
 )
 

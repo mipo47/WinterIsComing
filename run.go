@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./core"
+	"github.com/mysteriumnetwork/winter-server/core"
 	"os"
 	"fmt"
 	"strings"

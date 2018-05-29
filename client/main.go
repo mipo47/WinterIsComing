@@ -1,8 +1,8 @@
 package main
 
 import (
-	"../core"
-	"./gamer"
+	"github.com/mysteriumnetwork/winter-server/core"
+	"github.com/mysteriumnetwork/winter-server/client/gamer"
 	"log"
 	"net"
 	"strconv"

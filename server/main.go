@@ -1,7 +1,7 @@
 package main
 
 import (
-	"../core"
+	"github.com/mipo47/WinterIsComing/core"
 	"log"
 	"net"
 	"strconv"
