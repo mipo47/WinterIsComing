@@ -6,24 +6,9 @@ import (
 	"fmt"
 	"strings"
 	"runtime"
-	"log"
 )
 
 const IS_WINDOWS = runtime.GOOS == "windows"
-
-func showHelp()  {
-	fmt.Println(`
-Usage: 
-	go run run.go [command]
-
-The commands are:
-	test      runs all tests in project
-	build     builds applications to 'out' directory
-	server    builds and runs server app
-	client    builds and runs client app
-	web       builds and runs client app with integrated website
-`)
-}
 
 func build(binaryName, packageName string) {
 	if IS_WINDOWS {
@@ -62,6 +47,17 @@ func buildDocker(dockerfile, image string) {
 }
 
 func doBuild(args []string) {
+	help := `
+Usage: 
+	go run ci.go build <artifact>
+
+The artifacts are:
+	server        builds server to 'out' directory
+	client        builds client to 'out' directory
+	web           builds web to 'out' directory
+	server-image  builds Docker image of server
+`
+
 	switch strings.ToLower(args[0]) {
 	case "server":
 		buildServer()
@@ -71,6 +67,8 @@ func doBuild(args []string) {
 		buildWeb()
 	case "server-image":
 		buildServerImage()
+	case "help":
+		fmt.Print(help)
 	default:
 		buildServer()
 		buildClient()
@@ -79,16 +77,30 @@ func doBuild(args []string) {
 	}
 }
 
-func main() {
-	if len(os.Args) < 2 {
-		log.Fatal("need subcommand as first argument")
+func do(args []string) {
+	help := `
+Usage: 
+	go run ci.go <command>
+
+The commands are:
+	test      runs all tests in project
+	build     builds applications artifacts
+	server    builds and runs server app
+	client    builds and runs client app
+	web       builds and runs client app with integrated website
+`
+
+	if len(args) < 2 {
+		fmt.Println("Need subcommand as first argument")
+		fmt.Print(help)
+		os.Exit(1)
 	}
 
-	switch strings.ToLower(os.Args[1]) {
+	switch strings.ToLower(args[1]) {
 	case "test":
 		core.Execute("go test ./...")
 	case "build":
-		doBuild(os.Args[2:])
+		doBuild(args[2:])
 	case "server":
 		buildServer()
 		core.ExecuteIn("./server", "./out")
@@ -101,6 +113,10 @@ func main() {
 	case "help":
 		fallthrough
 	default:
-		showHelp()
+		fmt.Print(help)
 	}
+}
+
+func main() {
+	do(os.Args)
 }
