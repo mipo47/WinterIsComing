@@ -33,12 +33,23 @@ func build(name, folder string) string {
 	return name
 }
 
-func copyResources()  {
+func buildServer() string {
+	return build("server", "./server")
+}
+
+func buildClient() string {
+	return build("client", "./client")
+}
+
+func buildWeb() string {
+	name := build("web", "./client_web")
 	if IS_WINDOWS {
 		core.Execute("xcopy /f /y client_web\\html out\\html")
 	} else {
 		core.Execute("cp -a ./client_web/html ./out")
 	}
+
+	return name
 }
 
 func main() {
@@ -51,18 +62,19 @@ func main() {
 	switch strings.ToLower(os.Args[1]) {
 	case "test":
 		core.Execute("go test ./...")
+
 	case "build":
-		build("server", "./server")
-		build("client", "./client")
-		build("web", "./client_web")
-		copyResources()
+		buildServer()
+		buildClient()
+		buildWeb()
+
 	case "server":
-		run = build("server", "./server")
+		run = buildServer()
 	case "client":
-		run = build("client", "./client")
+		run = buildClient()
 	case "web":
-		run = build("web", "./client_web")
-		copyResources()
+		run = buildWeb()
+
 	case "help":
 		fallthrough
 	default: showHelp()
