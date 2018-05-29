@@ -11,7 +11,7 @@ const (
 
 	BOARD_WIDTH  = 30
 	BOARD_HEIGHT = 10
-	ZOMBIE_COUNT = 10
+	ZOMBIE_COUNT = 1
 
 	LOG_INFO        = true
 	LOG_ERROR       = true
