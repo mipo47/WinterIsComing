@@ -26,6 +26,10 @@ func buildServerImage() {
 	buildDocker("docker/server/Dockerfile", "mysteriumnetwork/winter-server")
 }
 
+func releaseServerImage(versions []string) {
+	publishDocker("mysteriumnetwork/winter-server", "mysteriumnetwork/winter-server", versions)
+}
+
 func buildClient() {
 	build("client", "./client")
 }
@@ -46,6 +50,16 @@ func buildDocker(dockerfile, image string) {
 	fmt.Print("Docker image building process complete!")
 }
 
+func publishDocker(sourceImage, targetImage string, targetVersions []string) {
+	for _, version := range targetVersions {
+		targetImageWithVersion := fmt.Sprintf("%s:%s", targetImage, version)
+		fmt.Printf("Publishing image version '%s'..\n", targetImageWithVersion)
+
+		core.MustRunCommand("docker", "tag", sourceImage, targetImageWithVersion)
+		core.MustRunCommand("docker","push", targetImageWithVersion)
+	}
+}
+
 func doRun(args []string) {
 	help := `
 Usage: 
@@ -58,7 +72,7 @@ The artifacts are:
 	help
 `
 
-	if len(args) < 1 {
+	if len(args) != 1 {
 		fmt.Println("Need <artifact> as first argument")
 		fmt.Print(help)
 		os.Exit(1)
@@ -94,6 +108,8 @@ The artifacts are:
 	client        builds client to 'out' directory
 	web           builds web to 'out' directory
 	server-image  builds Docker image of server
+
+The sub-commands are:
 	help
 `
 
@@ -116,6 +132,23 @@ The artifacts are:
 	}
 }
 
+func doRelease(args []string) {
+	help := `
+Usage: 
+	go run ci.go release <version>
+
+The sub-commands are:
+	help
+`
+
+	if len(args) != 1 {
+		fmt.Print(help)
+		os.Exit(1)
+	}
+
+	releaseServerImage([]string{args[0]})
+}
+
 func do(args []string) {
 	help := `
 Usage: 
@@ -125,10 +158,11 @@ The commands are:
 	test      runs all tests in project
 	run       run application artifacts
 	build     builds application artifacts
+	release   release application artifacts
 	help
 `
 
-	if len(args) < 2 {
+	if len(args) < 1 {
 		fmt.Println("Need subcommand as first argument")
 		fmt.Print(help)
 		os.Exit(1)
@@ -141,6 +175,8 @@ The commands are:
 		doRun(args[1:])
 	case "build":
 		doBuild(args[1:])
+	case "release":
+		doRelease(os.Args[2:])
 	case "help":
 		fallthrough
 	default:
