@@ -2,11 +2,11 @@ package core
 
 import (
 	"net"
-	"io"
 	"bufio"
 	"log"
 	"strings"
 	"fmt"
+	"io"
 )
 
 type CommandIO struct {
@@ -26,27 +26,18 @@ func StartCommandIO(conn net.Conn, name string) *CommandIO {
 		bufReader := bufio.NewReader(conn)
 		//conn.SetReadDeadline(time.Now().Add(TCP_TIMEOUT_SEC * time.Second))
 		for {
-			command := ConnCommand{}
-			buf, err := bufReader.ReadBytes('\n')
-			if err != nil {
-				command.Error = err
-				if err == io.EOF {
-					command.EOF = true
-				}
-				commandIO.Input <- command
-				break
-			}
-			if len(buf) == 0 {
-				continue
-			}
+			buf, _, err := bufReader.ReadLine()
 
-			// Skip last \n and convert to upper case
-			command.Line = string(buf[:len(buf)-1])
-			commandIO.Input <- command
-
+			command := ConnCommand{
+				Line: string(buf),
+				Error: err,
+				EOF: err == io.EOF,
+			}
 			if LOG_TCP_RECEIVE {
 				log.Println(name+" received:", command.Line)
 			}
+
+			commandIO.Input <- command
 		}
 	}()
 
