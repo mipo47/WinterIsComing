@@ -15,9 +15,9 @@ go run ci.go test
 ```
 ## Start server, client, client with web
 ```
-go run ci.go server
-go run ci.go client
-go run ci.go web
+go run ci.go run server
+go run ci.go run client
+go run ci.go run web
 ```
 ## Build all
 ```

@@ -46,6 +46,44 @@ func buildDocker(dockerfile, image string) {
 	fmt.Print("Docker image building process complete!")
 }
 
+func doRun(args []string) {
+	help := `
+Usage: 
+	go run ci.go run <artifact>
+
+The artifacts are:
+	server    builds and runs server app
+	client    builds and runs client app
+	web       builds and runs client app with integrated website
+	help
+`
+
+	if len(args) < 1 {
+		fmt.Println("Need <artifact> as first argument")
+		fmt.Print(help)
+		os.Exit(1)
+	}
+
+	switch strings.ToLower(args[0]) {
+	case "server":
+		buildServer()
+		core.ExecuteIn("./server", "./out")
+	case "client":
+		buildClient()
+		core.ExecuteIn("./client", "./out")
+	case "web":
+		buildWeb()
+		core.ExecuteIn("./web", "./out")
+	case "help":
+		fmt.Print(help)
+	default:
+		buildServer()
+		buildClient()
+		buildWeb()
+		buildServerImage()
+	}
+}
+
 func doBuild(args []string) {
 	help := `
 Usage: 
@@ -56,6 +94,7 @@ The artifacts are:
 	client        builds client to 'out' directory
 	web           builds web to 'out' directory
 	server-image  builds Docker image of server
+	help
 `
 
 	switch strings.ToLower(args[0]) {
@@ -84,10 +123,9 @@ Usage:
 
 The commands are:
 	test      runs all tests in project
-	build     builds applications artifacts
-	server    builds and runs server app
-	client    builds and runs client app
-	web       builds and runs client app with integrated website
+	run       run application artifacts
+	build     builds application artifacts
+	help
 `
 
 	if len(args) < 2 {
@@ -96,20 +134,13 @@ The commands are:
 		os.Exit(1)
 	}
 
-	switch strings.ToLower(args[1]) {
+	switch strings.ToLower(args[0]) {
 	case "test":
 		core.Execute("go test ./...")
+	case "run":
+		doRun(args[1:])
 	case "build":
-		doBuild(args[2:])
-	case "server":
-		buildServer()
-		core.ExecuteIn("./server", "./out")
-	case "client":
-		buildClient()
-		core.ExecuteIn("./client", "./out")
-	case "web":
-		buildWeb()
-		core.ExecuteIn("./web", "./out")
+		doBuild(args[1:])
 	case "help":
 		fallthrough
 	default:
@@ -118,5 +149,5 @@ The commands are:
 }
 
 func main() {
-	do(os.Args)
+	do(os.Args[1:])
 }
