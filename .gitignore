@@ -2,11 +2,7 @@
 .idea/
 
 # Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+.out/
 
 # Test binary, build with `go test -c`
 *.test

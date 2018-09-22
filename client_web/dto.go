@@ -1,6 +1,6 @@
 package main
 
-import "../client/gamer"
+import "github.com/mysteriumnetwork/winter-server/client/gamer"
 
 type dtoStart struct {
 	SessionID int

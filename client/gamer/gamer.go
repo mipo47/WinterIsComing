@@ -1,7 +1,7 @@
 package gamer
 
 import (
-	"../../core"
+	"github.com/mysteriumnetwork/winter-server/core"
 	"strconv"
 	"os"
 	"log"

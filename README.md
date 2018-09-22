@@ -11,17 +11,17 @@ Multiplayer "tower defense" game, no dependencies, only standart Go packages
 
 ## Test
 ```
-go run run.go test
+go run ci.go test
 ```
 ## Start server, client, client with web
 ```
-go run run.go server
-go run run.go client
-go run run.go web
+go run ci.go run server
+go run ci.go run client
+go run ci.go run web
 ```
 ## Build all
 ```
-go run run.go build
+go run ci.go build
 ```
 
 Binaries can be found in /out directory (Windows/Ubuntu):

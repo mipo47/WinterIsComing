@@ -47,3 +47,17 @@ func ExecuteIn(command string, directory string) {
 		log.Fatal("failed to capture stdout or stderr\n")
 	}
 }
+
+// MustRun executes the given command and exits the host process for any error.
+func MustRun(cmd *exec.Cmd) {
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+
+	if err := cmd.Run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func MustRunCommand(cmd string, args ...string) {
+	MustRun(exec.Command(cmd, args...))
+}
