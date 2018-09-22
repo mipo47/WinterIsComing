@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/mipo47/WinterIsComing/core"
+	"github.com/mysteriumnetwork/winter-server/core"
 	"log"
 	"net"
 	"strconv"
